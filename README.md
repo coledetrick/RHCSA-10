@@ -16,6 +16,8 @@
   - [2.2. Install and remove RPM software packages](#22-install-and-remove-rpm-software-packages)
   - [2.3. Configure access to Flatpak repositories](#23-configure-access-to-flatpak-repositories)
   - [2.4. Install and remove Flatpak software packages](#24-install-and-remove-flatpak-software-packages)
+- [3. Create simple shell scripts](#3-create-simple-shell-scripts)
+  - [3.1. Conditionally execute code (use of: if, test, \[\], etc.)](#31-conditionally-execute-code-use-of-if-test--etc)
   - [3.2. Use Looping constructs (for, etc.) to process file, command line input](#32-use-looping-constructs-for-etc-to-process-file-command-line-input)
   - [3.3. Process script inputs ($1, $2, etc.)](#33-process-script-inputs-1-2-etc)
   - [3.4. Processing output of shell commands within a script](#34-processing-output-of-shell-commands-within-a-script)
@@ -43,13 +45,13 @@
   - [6.3. Configure autofs](#63-configure-autofs)
   - [6.4. Extend existing logical volumes](#64-extend-existing-logical-volumes)
   - [6.5. Diagnose and correct file permission problems](#65-diagnose-and-correct-file-permission-problems)
-  - [6.6. Deploy, configure, and maintain systems](#66-deploy-configure-and-maintain-systems)
-- [7. Schedule tasks using at and cron](#7-schedule-tasks-using-at-and-cron)
-  - [7.1. Start and stop services and configure services to start automatically at boot](#71-start-and-stop-services-and-configure-services-to-start-automatically-at-boot)
-  - [7.2. Configure systems to boot into a specific target automatically](#72-configure-systems-to-boot-into-a-specific-target-automatically)
-  - [7.3. Configure time service clients](#73-configure-time-service-clients)
-  - [7.4. Install and update software packages from Red Hat Content Delivery Network, a remote repository, or from the local file system](#74-install-and-update-software-packages-from-red-hat-content-delivery-network-a-remote-repository-or-from-the-local-file-system)
-  - [7.5. Modify the system bootloader](#75-modify-the-system-bootloader)
+- [7. Deploy, configure, and maintain systems](#7-deploy-configure-and-maintain-systems)
+  - [7.1. Schedule tasks using at and cron](#71-schedule-tasks-using-at-and-cron)
+  - [7.2. Start and stop services and configure services to start automatically at boot](#72-start-and-stop-services-and-configure-services-to-start-automatically-at-boot)
+  - [7.3. Configure systems to boot into a specific target automatically](#73-configure-systems-to-boot-into-a-specific-target-automatically)
+  - [7.4. Configure time service clients](#74-configure-time-service-clients)
+  - [7.5. Install and update software packages from Red Hat Content Delivery Network, a remote repository, or from the local file system](#75-install-and-update-software-packages-from-red-hat-content-delivery-network-a-remote-repository-or-from-the-local-file-system)
+  - [7.6. Modify the system bootloader](#76-modify-the-system-bootloader)
 - [8. Manage basic networking](#8-manage-basic-networking)
   - [8.1. Configure IPv4 and IPv6 addresses](#81-configure-ipv4-and-ipv6-addresses)
   - [8.2. Configure hostname resolution](#82-configure-hostname-resolution)
@@ -279,19 +281,19 @@ cat /etc/flatpak/remotes.d/remote_name.flatpakrepo  # View configuration file fo
 
 ### 2.4. Install and remove Flatpak software packages  
 
-```bash
-dnf install flatpak  # Install Flatpak package manager
+   ```bash
+   dnf install flatpak  # Install Flatpak package manager
 
-flatpak install --user flathub org.mozilla.firefox  # Install Firefox from Flathub for current user
-flatpak uninstall --delete-data org.mozilla.firefox  # Uninstall Firefox and remove its data
-flatpak mask thunderbird  # Prevent updates or installation of Thunderbird Flatpak
-flatpak info thunderbird  # Show information about the Thunderbird Flatpak package
-```
-
-```
+   flatpak install --user flathub org.mozilla.firefox  # Install Firefox from Flathub for current user
+   flatpak uninstall --delete-data org.mozilla.firefox  # Uninstall Firefox and remove its data
+   flatpak mask thunderbird  # Prevent updates or installation of Thunderbird Flatpak
+   flatpak info thunderbird  # Show information about the Thunderbird Flatpak package
+   ```
 
 ## 3. Create simple shell scripts
+
 ### 3.1. Conditionally execute code (use of: if, test, [], etc.)  
+
    ```bash
    if grep -q "ERROR" /var/log/messages; then  ### -q: quiet (no output)
      echo "Errors found"
@@ -357,13 +359,13 @@ To change the GRUB boot target, add `systemd.unit=emergency.target` to the GRUB 
 
 ### 4.4. Identify CPU/memory intensive processes and kill processes  
 
-```bash
-ps aux --sort=-%cpu | head        ### sort by CPU usage
-ps aux --sort=-%mem | head        ### sort by memory usage
-kill PID
-kill -SIGKILL PID
-pkill -u user                     ### kill all processes for user
-```
+   ```bash
+   ps aux --sort=-%cpu | head        ### sort by CPU usage
+   ps aux --sort=-%mem | head        ### sort by memory usage
+   kill PID
+   kill -SIGKILL PID
+   pkill -u user                     ### kill all processes for user
+   ```
 
 ### 4.5. Adjust process scheduling  
 
@@ -496,44 +498,48 @@ pkill -u user                     ### kill all processes for user
    restorecon -Rv /var/www  ### restore SELinux context
    ```
 
-### 6.6. Deploy, configure, and maintain systems  
+## 7. Deploy, configure, and maintain systems  
 
-   ```bash
-   dnf groupinstall "Web Server"  ### install group
-   systemctl enable --now httpd  ### enable and start httpd
-   ```
+### 7.1. Schedule tasks using at and cron
 
-## 7. Schedule tasks using at and cron
-
-### 7.1. Start and stop services and configure services to start automatically at boot  
+### 7.2. Start and stop services and configure services to start automatically at boot  
 
    ```bash
    systemctl enable --now crond  ### enable/start cron
+   systemctl disable --now crond ### stop and disable cron
    systemctl disable firewalld  ### disable firewalld
+   systemctl list-units --type=service|timer|socket --all # list all units of provided type
+   systemctl list-unit-files --type=service|timer|socket # list all unit files of provided type
+   systemctl status firewalld # show service status
+   systemctl cat firewalld # show service file
+   systemctl edit firewalld # edit service file
+   systemctl reload sshd # reload service without stopping
+   systemctl mask service_name # prevent starting or enabling service.
+   systemctl list-dependencies --reverse NetworkManager.service
    ```
 
-### 7.2. Configure systems to boot into a specific target automatically  
+### 7.3. Configure systems to boot into a specific target automatically  
 
    ```bash
    systemctl set-default graphical.target  ### set default target
    systemctl get-default  ### show default target
    ```
 
-### 7.3. Configure time service clients  
+### 7.4. Configure time service clients  
 
    ```bash
    timedatectl set-timezone America/New_York  ### set timezone
    chronyc tracking  ### show chrony status
    ```
 
-### 7.4. Install and update software packages from Red Hat Content Delivery Network, a remote repository, or from the local file system  
+### 7.5. Install and update software packages from Red Hat Content Delivery Network, a remote repository, or from the local file system  
 
    ```bash
    dnf update --security  ### update security packages
    dnf install /tmp/package.rpm  ### install local rpm
    ```
 
-### 7.5. Modify the system bootloader  
+### 7.6. Modify the system bootloader  
 
    ```bash
    grub2-editenv list  ### list GRUB env
@@ -544,9 +550,19 @@ pkill -u user                     ### kill all processes for user
 
 ### 8.1. Configure IPv4 and IPv6 addresses  
 
+Always check autoconnect of connection profiles, new and old to preserver configuration during reboot.
+
    ```bash
-   nmcli con add type ethernet con-name eth1 ifname eth1 ipv4.addresses 192.168.2.10/24 ipv4.method manual  ### add connection
+   nmcli con show # show connection status 
+   nmcli con show --active # show active connection status
+   nmcli dev show # how network device status
+   nmcli con add type ethernet con-name eth1 ifname eth1 ipv4.addresses 192.168.2.10/24 ipv4.dns 8.8.8.8 ipv4.gateway 192.168.2.1 ipv4.method manual  ### add connection
    nmcli con up eth1  ### bring up connection
+   nmcli con mod eth1 +ipv4.addresses 192.168.2.11/24 connection.autoconnect yes ## modify connection, after modify run nmcli con up autoconnect is necessary to make setting persistent during reboot.
+   nmcli con reload # reload network configuration.
+   nmcli con reload eth1 # reload specific network configuration
+   nmcli con del eth1 # remove specific network configuration
+   nmcli gen permissions # show permissiong to setup network interfaces for command invoking user.
    ```
 
 ### 8.2. Configure hostname resolution  
@@ -554,6 +570,9 @@ pkill -u user                     ### kill all processes for user
    ```bash
    echo "192.168.2.100 server2" >> /etc/hosts  ### add host entry
    hostnamectl set-hostname server2.example.com  ### set hostname
+   dig example.com # query DNS servers.
+   host example.com # query DNS servers
+   getent hosts example.com # query also /etc/hosts
    ```
 
 ### 8.3. Configure network services to start automatically at boot  
@@ -614,11 +633,11 @@ pkill -u user                     ### kill all processes for user
 
 ### 9.4. Configure superuser access  
 
-    ```bash
-    echo "alice ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/alice  ### Allow user 'alice' to run any command as any user without password
-    echo "%admin ALL=(ALL) ALL" > /etc/sudoers.d/admin           ### Allow all users in 'admin' group to run any command as any user (password required)
-    user_name|%group_name HOSTS=(AS_USERS:AS_GROUPS) COMMANDS ### Sudoers syntax: specify user/group, hosts, run-as users/groups, and allowed commands
-    ```
+   ```bash
+   echo "alice ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/alice  ### Allow user 'alice' to run any command as any user without password
+   echo "%admin ALL=(ALL) ALL" > /etc/sudoers.d/admin           ### Allow all users in 'admin' group to run any command as any user (password required)
+   user_name|%group_name HOSTS=(AS_USERS:AS_GROUPS) COMMANDS ### Sudoers syntax: specify user/group, hosts, run-as users/groups, and allowed commands
+   ```
 
 ### 9.5. Change default user settings
 
