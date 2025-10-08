@@ -71,12 +71,12 @@
   - [10.7. Manage SELinux port labels](#107-manage-selinux-port-labels)
   - [10.8. Use boolean settings to modify system SELinux settings](#108-use-boolean-settings-to-modify-system-selinux-settings)
 
-
-
 RHCSA EX200 RHEL10
 
 ## 1. Understand and use essential tools []
+
 ### 1.1. Registering a System
+
 ```bash
 rhc connect
 subscription-manager register|status|syspurpose|unregister
@@ -89,6 +89,7 @@ ls /etc/pki/entitlement # authenticate system to repositories
 ```
 
 ### 1.2. Access a shell prompt and issue commands with correct syntax  
+
    ```bash
    echo "Current user: $(whoami)"  ### whoami: print current user
    for file in $(ls *.log); do grep "ERROR" "$file"; done  ### loop through .log files and search for "ERROR"
@@ -99,13 +100,17 @@ ls /etc/pki/entitlement # authenticate system to repositories
    myhost=$(hostname -s); echo $myhost # invoke command and assign to variable
    newgrp group_name # temporary change user group from primary to secondary, all executed commands use this group.
    ```
+
 ### 1.3. Use input-output redirection (>, >>, |, 2>, etc.)  
+
    ```bash
    grep "fail" /var/log/messages | tee failed.log  ### |: pipe output; tee: write to file and stdout
    ls /nonexistent 2>&1 | tee errors.txt  ### 2>&1: redirect stderr to stdout
    cat file1.txt file2.txt > combined.txt  ### >: overwrite output file
    ```
+
 ### 1.4. Use grep and regular expressions to analyze text  
+
    ```bash
    grep -E "^(root|admin)" /etc/passwd  ### -E: extended regex; ^: start of line
    grep -r "password" /etc/  ### -r: recursive search
@@ -120,22 +125,30 @@ ls /etc/pki/entitlement # authenticate system to repositories
    grep -E "([0-9]{1,3}\.){3}[0-9]{1,3}" /var/log/messages  ### match IPv4 addresses
    grep -E "^[^:]+:[^:]*:[0-9]{4,}:" /etc/passwd  ### match lines with UID >= 1000
    ```
+
 ### 1.5. Access remote systems using SSH  
+
    ```bash
    ssh -X user@host "firefox"  ### -X: enable X11 forwarding
    ssh user@host "tar czf /tmp/home.tar.gz /home/user"  ### run remote command via SSH
    ```
+
 ### 1.6. Log in and switch users in multiuser targets  
+
    ```bash
    su -l username -c "whoami"  ### su: switch user; -l: login shell; -c: run command
    sudo -u username bash -c 'id'  ### sudo: run as another user; -u: specify user
    ```
+
 ### 1.7. Archive, compress, unpack, and uncompress files using tar, gzip, and bzip2  
+
    ```bash
    tar --exclude='*.tmp' -czvf backup.tar.gz /home/user  ### --exclude: skip files; -c: create; -z: gzip; -v: verbose; -f: file
    tar -tvf archive.tar | grep '.sh'  ### -t: list; -v: verbose; -f: file
    ```
+
 ### 1.8. Create and edit text files  
+
    ```bash
    touch file{1..5}
    touch file{a,b}
@@ -143,7 +156,9 @@ ls /etc/pki/entitlement # authenticate system to repositories
    echo -e "Line1\nLine2" > file.txt  ### -e: interpret escapes; >: overwrite
    sed -i 's/foo/bar/g' file.txt  ### sed: stream editor; -i: in-place; s/foo/bar/g: replace all
    ```
+
 ### 1.9. Create, delete, copy, and move files and directories  
+
    ```bash
    find . -name "*.bak" -exec rm {} \;  ### find: search; -exec: run command on results
    find . -name "*.bak" -delete
@@ -154,11 +169,14 @@ ls /etc/pki/entitlement # authenticate system to repositories
    ```
 
 ### 1.10. Create hard and soft links  
+
    ```bash
    ln -s /var/log/messages /tmp/messages_link  ### ln -s: create symbolic (soft) link
    ln /etc/hosts /tmp/hosts_hardlink  ### ln: create hard link
    ```
+
 ### 1.11. List, set, and change standard ugo/rwx permissions  
+
    ```bash
    chmod go+w,o-r file.txt      # Add write for group, remove read for others on file.txt
    chmod a+x script.sh          # Add execute permission for all users on script.sh
@@ -168,20 +186,21 @@ ls /etc/pki/entitlement # authenticate system to repositories
    chmod 00770 example # to remove special permission additional 0 is necessary. 
    ```
 
-| Mode | Description |
-|------|-------------|
-| `r`  | Read access to the file. Listing access to the directory. |
-| `w`  | Write permissions to the file or directory. |
-| `x`  | Execute permissions to the file. Allows entering the directory and accessing files and subdirectories inside the directory. |
+| Mode | Description                                                                                                                       |
+| ---- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `r`  | Read access to the file. Listing access to the directory.                                                                         |
+| `w`  | Write permissions to the file or directory.                                                                                       |
+| `x`  | Execute permissions to the file. Allows entering the directory and accessing files and subdirectories inside the directory.       |
 | `X`  | Special execute: Execute permissions to a directory, or execute permissions to a file if at least one of the execute bits is set. |
 
-| Permission | Bit Notation | Effect on Files | Effect on Directories |
-|------------|--------------|-----------------|----------------------|
-| `u+s` (suid) | `4000` | File executes as the user that owns the file, not as the user that ran the file. | No effect. |
-| `g+s` (sgid) | `2000` | File executes as the group that owns the file. | Files created in the directory have a group owner matching the group owner of the directory. |
-| `o+t` (sticky) | `1000` | No effect. | Users with write access to the directory can remove only files that they own; they cannot remove or force saves to files owned by others. |
+| Permission     | Bit Notation | Effect on Files                                                                  | Effect on Directories                                                                                                                     |
+| -------------- | ------------ | -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `u+s` (suid)   | `4000`       | File executes as the user that owns the file, not as the user that ran the file. | No effect.                                                                                                                                |
+| `g+s` (sgid)   | `2000`       | File executes as the group that owns the file.                                   | Files created in the directory have a group owner matching the group owner of the directory.                                              |
+| `o+t` (sticky) | `1000`       | No effect.                                                                       | Users with write access to the directory can remove only files that they own; they cannot remove or force saves to files owned by others. |
 
 ### 1.12. Locate, read, and use system documentation including man, info, and files in /usr/share/doc  
+
 ```bash
 man -k passwd                   ### Search man page descriptions for 'passwd'
 man -w ls                      ### Show location of 'ls' man page
@@ -196,7 +215,9 @@ less /usr/share/doc/bash/README ### View documentation file
 ```
 
 ## 2. Manage software
+
 ### 2.1. Configure access to RPM repositories  
+
    ```bash
    dnf config-manager --enable codeready-builder-for-rhel-10-x86_64-rpms  ### enable repo
    dnf repolist all  ### list all repos
@@ -206,7 +227,9 @@ less /usr/share/doc/bash/README ### View documentation file
    rpm --import GPG_KEY
    dnf install example.rpm
    ```
+
 ### 2.2. Install and remove RPM software packages  
+
    ```bash
    dnf install --downloadonly --downloaddir=/tmp vim  # --downloadonly: only download; --downloaddir: target dir
    rpm -q --scripts httpd  # -q: query package; --scripts: show package scripts
@@ -231,7 +254,9 @@ less /usr/share/doc/bash/README ### View documentation file
    uname -r                            # show running kernel version
    uname -a                            # show all system info
    ```
+
 ### 2.3. Configure access to Flatpak repositories  
+
 ```bash
 flatpak remote-list --show-details  ### list Flatpak repos with details
 podman login registry.redhat.io  # Authenticate to Red Hat registry for OCI images
@@ -251,7 +276,9 @@ flatpak remote-modify --enable remote_name  # Enable a Flatpak remote
 
 cat /etc/flatpak/remotes.d/remote_name.flatpakrepo  # View configuration file for a Flatpak remote
 ```
+
 ### 2.4. Install and remove Flatpak software packages  
+
 ```bash
 dnf install flatpak  # Install Flatpak package manager
 
@@ -260,6 +287,7 @@ flatpak uninstall --delete-data org.mozilla.firefox  # Uninstall Firefox and rem
 flatpak mask thunderbird  # Prevent updates or installation of Thunderbird Flatpak
 flatpak info thunderbird  # Show information about the Thunderbird Flatpak package
 ```
+
 ```
 
 ## 3. Create simple shell scripts
@@ -271,14 +299,18 @@ flatpak info thunderbird  # Show information about the Thunderbird Flatpak packa
      echo "No errors"
    fi
    ```
+
 ### 3.2. Use Looping constructs (for, etc.) to process file, command line input  
+
    ```bash
    for user in $(cut -d: -f1 /etc/passwd); do  ### cut: split by ':'; -f1: first field
      echo "Checking $user"
      id $user  ### id: show user info
    done
    ```
+
 ### 3.3. Process script inputs ($1, $2, etc.)  
+
    ```bash
    if [ $# -lt 2 ]; then  ### $# number of args; -lt: less than
      echo "Usage: $0 arg1 arg2"  ### $0: script name
@@ -286,7 +318,9 @@ flatpak info thunderbird  # Show information about the Thunderbird Flatpak packa
    fi
    echo "Arg1: $1, Arg2: $2"  ### $1/$2: first/second arg
    ```
+
 ### 3.4. Processing output of shell commands within a script  
+
    ```bash
    files=$(find /var/log -name "*.log")  ### $(...): command substitution
    for f in $files; do
@@ -295,90 +329,128 @@ flatpak info thunderbird  # Show information about the Thunderbird Flatpak packa
    ```
 
 ## 4. Operate running systems
+
 ### 4.1. Boot, reboot, and shut down a system normally  
+
    ```bash
    systemctl reboot --force  ### --force: force reboot
    systemctl poweroff --no-wall  ### --no-wall: don't notify users
    ```
+
 ### 4.2. Boot systems into different targets manually  
+
    ```bash
    systemctl list-units --type=target  ### list systemd targets
    systemctl isolate rescue.target  ### switch to rescue mode
    ```
+
+To change the GRUB boot target, add `systemd.unit=emergency.target` to the GRUB command line.
+
 ### 4.3. Interrupt the boot process in order to gain access to a system  
-   *(GRUB: add `rd.break` and mount sysroot for password reset)*
+
+   *(GRUB: add `init=/bin/bash` and remove all `console=` entries then mount for password reset)*
+
    ```bash
-   mount -o remount,rw /sysroot  ### remount as read-write
-   chroot /sysroot  ### change root to sysroot
+   mount -o remount,rw /  ### remount as read-write
    passwd root  ### reset root password
    ```
+
 ### 4.4. Identify CPU/memory intensive processes and kill processes  
-   ```bash
-   ps aux --sort=-%cpu | head  ### sort by CPU usage
-   pkill -u user  ### kill all processes for user
-   ```
+
+```bash
+ps aux --sort=-%cpu | head        ### sort by CPU usage
+ps aux --sort=-%mem | head        ### sort by memory usage
+kill PID
+kill -SIGKILL PID
+pkill -u user                     ### kill all processes for user
+```
+
 ### 4.5. Adjust process scheduling  
+
    ```bash
    nice -n -5 tar czf backup.tar.gz /home  ### -n: set nice value
    renice -n 15 -p $(pgrep httpd)  ### renice: change nice value; -p: process id
    ```
+
 ### 4.6. Manage tuning profiles  
+
    ```bash
    tuned-adm recommend  ### recommend best profile
    tuned-adm profile virtual-guest  ### set profile
    ```
+
 ### 4.7. Locate and interpret system log files and journals  
+
    ```bash
    journalctl --since "1 hour ago"  ### logs from last hour
    journalctl -u sshd --no-pager  ### logs for sshd; --no-pager: no paging
    ```
+
 ### 4.8. Preserve system journals  
+
    ```bash
    journalctl --vacuum-size=500M  ### reduce journal size
    journalctl --output=export > /root/journal-backup.bin  ### export journal
    ```
+
 ### 4.9. Start, stop, and check the status of network services  
+
    ```bash
    systemctl restart NetworkManager  ### restart service
    systemctl is-enabled firewalld  ### check if enabled
    ```
+
 ### 4.10. Securely transfer files between systems  
-    ```bash
-    rsync -avz --progress /etc user@host:/backup/etc  ### rsync: sync files; -a: archive; -v: verbose; -z: compress
-    scp -r /var/www user@host:/var/www  ### scp: secure copy; -r: recursive
-    ```
+
+   ```bash
+   rsync -avz --progress /etc user@host:/backup/etc  ### rsync: sync files; -a: archive; -v: verbose; -z: compress
+   scp -r /var/www user@host:/var/www  ### scp: secure copy; -r: recursive
+   ```
 
 ## 5. Configure local storage
+
 ### 5.1. List, create, delete partitions on MBR and GPT disks  
+
    ```bash
    parted /dev/sdb print  ### print partition table
    parted /dev/sdb mkpart primary ext4 1MiB 100MiB  ### create partition
    fdisk -l /dev/sdb  ### list partitions
    ```
+
 ### 5.2. Create and remove physical volumes  
+
    ```bash
    pvcreate /dev/sdb1 /dev/sdc1  ### create PVs
    pvs  ### list PVs
    pvremove /dev/sdc1  ### remove PV
    ```
+
 ### 5.3. Assign physical volumes to volume groups  
+
    ```bash
    vgcreate vgdata /dev/sdb1 /dev/sdc1  ### create VG
    vgextend vgdata /dev/sdd1  ### add PV to VG
    vgs  ### list VGs
    ```
+
 ### 5.4. Create and delete logical volumes  
+
    ```bash
    lvcreate -L 5G -n lvbackup vgdata  ### create LV
    lvremove /dev/vgdata/lvbackup  ### remove LV
    lvs  ### list LVs
    ```
+
 ### 5.5. Configure systems to mount file systems at boot by universally unique ID (UUID) or label  
+
    ```bash
+   lsblk -fp
    blkid /dev/sdb1  ### get UUID
    echo "UUID=$(blkid -s UUID -o value /dev/sdb1) /mnt/data ext4 defaults 0 2" >> /etc/fstab  ### add to fstab
    ```
+
 ### 5.6. Add new partitions and logical volumes, and swap to a system non-destructively  
+
    ```bash
    lvextend -r -L +2G /dev/vgdata/lvdata  ### -r: resize filesystem
    mkswap /dev/vgdata/lvswap  ### create swap
@@ -386,83 +458,113 @@ flatpak info thunderbird  # Show information about the Thunderbird Flatpak packa
    ```
 
 ## 6. Create and configure file systems
+
 ### 6.1. Create, mount, unmount, and use VFAT, ext4, and xfs file systems  
+
    ```bash
    mkfs.xfs /dev/vgdata/lvdata  ### create xfs filesystem
    mount -o noatime /dev/vgdata/lvdata /mnt/data  ### mount with noatime
    umount /mnt/data  ### unmount
    ```
+
 ### 6.2. Mount and unmount network file systems using NFS  
+
    ```bash
    mount -t nfs4 server:/export/home /mnt/home  ### mount NFSv4
    echo "server:/export/home /mnt/home nfs4 defaults 0 0" >> /etc/fstab  ### add NFS to fstab
    ```
+
 ### 6.3. Configure autofs  
+
    ```bash
    echo "/home /etc/auto.home" >> /etc/auto.master  ### add autofs map
    echo "user -rw,soft server:/export/user" > /etc/auto.home  ### map user dir
    systemctl restart autofs  ### restart autofs
    ```
+
 ### 6.4. Extend existing logical volumes  
+
    ```bash
    lvextend -L +5G /dev/vgdata/lvdata  ### extend LV
    xfs_growfs /mnt/data  ### grow xfs filesystem
    ```
+
 ### 6.5. Diagnose and correct file permission problems  
+
    ```bash
    find /var/www -type f -exec chmod 644 {} \;  ### set permissions
    restorecon -Rv /var/www  ### restore SELinux context
    ```
+
 ### 6.6. Deploy, configure, and maintain systems  
+
    ```bash
    dnf groupinstall "Web Server"  ### install group
    systemctl enable --now httpd  ### enable and start httpd
    ```
 
 ## 7. Schedule tasks using at and cron
+
 ### 7.1. Start and stop services and configure services to start automatically at boot  
+
    ```bash
    systemctl enable --now crond  ### enable/start cron
    systemctl disable firewalld  ### disable firewalld
    ```
+
 ### 7.2. Configure systems to boot into a specific target automatically  
+
    ```bash
    systemctl set-default graphical.target  ### set default target
    systemctl get-default  ### show default target
    ```
+
 ### 7.3. Configure time service clients  
+
    ```bash
    timedatectl set-timezone America/New_York  ### set timezone
    chronyc tracking  ### show chrony status
    ```
+
 ### 7.4. Install and update software packages from Red Hat Content Delivery Network, a remote repository, or from the local file system  
+
    ```bash
    dnf update --security  ### update security packages
    dnf install /tmp/package.rpm  ### install local rpm
    ```
+
 ### 7.5. Modify the system bootloader  
+
    ```bash
    grub2-editenv list  ### list GRUB env
    grub2-set-default 2  ### set default boot entry
    ```
 
 ## 8. Manage basic networking
+
 ### 8.1. Configure IPv4 and IPv6 addresses  
+
    ```bash
    nmcli con add type ethernet con-name eth1 ifname eth1 ipv4.addresses 192.168.2.10/24 ipv4.method manual  ### add connection
    nmcli con up eth1  ### bring up connection
    ```
+
 ### 8.2. Configure hostname resolution  
+
    ```bash
    echo "192.168.2.100 server2" >> /etc/hosts  ### add host entry
    hostnamectl set-hostname server2.example.com  ### set hostname
    ```
+
 ### 8.3. Configure network services to start automatically at boot  
+
    ```bash
    systemctl enable --now NetworkManager  ### enable/start NetworkManager
    systemctl enable --now sshd  ### enable/start sshd
    ```
+
 ### 8.4. Restrict network access using firewalld and firewall-cmd  
+
    ```bash
    firewall-cmd --permanent --zone=public --add-service=https  ### add https service
    firewall-cmd --permanent --zone=public --remove-service=ftp  ### remove ftp service
@@ -470,7 +572,9 @@ flatpak info thunderbird  # Show information about the Thunderbird Flatpak packa
    ```
 
 ## 9. Manage users and groups
+
 ### 9.1. Create, delete, and modify local user accounts  
+
    ```bash
    useradd -m -s /bin/bash alice  ### -m: create home; -s: shell
    usermod -L bob  ### -L: lock account
@@ -479,7 +583,9 @@ flatpak info thunderbird  # Show information about the Thunderbird Flatpak packa
    usermod -aG group username 
    usermod -c "comment" username
    ```
+
 ### 9.2. Change passwords and adjust password aging for local user accounts  
+
    ```bash
    passwd --expire alice                # Force user 'alice' to change password at next login
    chage -d 0 alice                     # Set last password change date to 0 (forces password change at next login)
@@ -492,7 +598,9 @@ flatpak info thunderbird  # Show information about the Thunderbird Flatpak packa
    cat /etc/login.defs                  # View default user account settings (UID ranges, password aging, etc.)
    cat /etc/security/pwquality.conf     # View password quality requirements (length, complexity, etc.)
    ```
+
 ### 9.3. Create, delete, and modify local groups and group memberships  
+
    ```bash
    groupadd -g GID devs  ### add group
    groupadd -r system_group_name 
@@ -503,12 +611,15 @@ flatpak info thunderbird  # Show information about the Thunderbird Flatpak packa
    groupdel group_name
    groupmod -aU user_name1 user_name2
    ```
+
 ### 9.4. Configure superuser access  
+
     ```bash
     echo "alice ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/alice  ### Allow user 'alice' to run any command as any user without password
     echo "%admin ALL=(ALL) ALL" > /etc/sudoers.d/admin           ### Allow all users in 'admin' group to run any command as any user (password required)
     user_name|%group_name HOSTS=(AS_USERS:AS_GROUPS) COMMANDS ### Sudoers syntax: specify user/group, hosts, run-as users/groups, and allowed commands
     ```
+
 ### 9.5. Change default user settings
 
    ```bash
@@ -516,68 +627,88 @@ flatpak info thunderbird  # Show information about the Thunderbird Flatpak packa
    /etc/login.defs          # Configuration file for user account creation defaults (UID ranges, password aging, etc.)
    /etc/secure/pwquality.conf # Password quality requirements (minimum length, complexity, etc.)
    ```
-   
+
 ## 10. Manage security
+
 ### 10.1. Configure firewall settings using firewall-cmd/firewalld  
+
    ```bash
    firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="192.168.1.0/24" service name="ssh" accept'  ### rich rule for ssh
    firewall-cmd --reload  ### reload firewall
    ```
+
 ### 10.2. Manage default file permissions  
+
 ```bash
 umask 027  ### set default permissions
 chmod -R o-rwx /home/alice  ### remove other access
 ```
 
-| Umask Value | Default File Permissions | Default Directory Permissions | Description                       |
-|-------------|-------------------------|------------------------------|-----------------------------------|
-| `0000`      | 666 (rw-rw-rw-)         | 777 (rwxrwxrwx)              | No restrictions                   |
-| `0022`      | 644 (rw-r--r--)         | 755 (rwxr-xr-x)              | Others cannot write               |
-| `0027`      | 640 (rw-r-----)         | 750 (rwxr-x---)              | Others have no access             |
-| `0077`      | 600 (rw-------)         | 700 (rwx------)              | Only owner has access             |
+| Umask Value | Default File Permissions | Default Directory Permissions | Description           |
+| ----------- | ------------------------ | ----------------------------- | --------------------- |
+| `0000`      | 666 (rw-rw-rw-)          | 777 (rwxrwxrwx)               | No restrictions       |
+| `0022`      | 644 (rw-r--r--)          | 755 (rwxr-xr-x)               | Others cannot write   |
+| `0027`      | 640 (rw-r-----)          | 750 (rwxr-x---)               | Others have no access |
+| `0077`      | 600 (rw-------)          | 700 (rwx------)               | Only owner has access |
 
 *Umask subtracts permissions from the default (666 for files, 777 for directories).*
 
 **Set default umask for all users:**  
+
 - Edit `/etc/profile` and add or modify the line:  
+
    ```bash
    umask 027
    ```
+
    This sets the default umask for all users on login.
 
 **Set default umask for a specific user:**  
+
 - Add or modify the `umask` line in the user's shell startup file (e.g., `~/.bashrc`, `~/.bash_profile`, or `~/.profile`):  
+
    ```bash
    umask 027
    ```
+
    This sets the default umask only for that user.
 
-
 ### 10.3. Configure key-based authentication for SSH  
+
    ```bash
    ssh-keygen -t ed25519 -C "alice@server"  ### generate key; -t: type; -C: comment
    ssh-copy-id -i ~/.ssh/id_ed25519.pub user@host  ### copy key to host
    ```
+
 ### 10.4. Set enforcing and permissive modes for SELinux  
+
    ```bash
    setenforce 0  ### set permissive mode
    sed -i 's/^SELINUX=.*/SELINUX=permissive/' /etc/selinux/config  ### change config
    ```
+
 ### 10.5. List and identify SELinux file and process context  
+
    ```bash
    ls -lZ /var/www/html  ### show SELinux context
    ps -eZ | grep httpd  ### show process context
    ```
+
 ### 10.6. Restore default file contexts  
+
    ```bash
    restorecon -Rv /var/www/html  ### restore context; -R: recursive; -v: verbose
    ```
+
 ### 10.7. Manage SELinux port labels  
+
    ```bash
    semanage port -a -t ssh_port_t -p tcp 2222  ### -a: append (add); -t: type; -p: protocol
    semanage port -d -t http_port_t -p tcp 8080  ### -d: delete; -t: type; -p: protocol
    ```
+
 ### 10.8. Use boolean settings to modify system SELinux settings  
+
    ```bash
    setsebool -P httpd_can_sendmail on  ### -P: persistent; set boolean
    getsebool httpd_can_sendmail  ### get boolean value
