@@ -1,21 +1,22 @@
-# Understand and use essential tools
+# RHCSA EX200 RHEL10
+## Understand and use essential tools
+1. Access a shell prompt and issue commands with correct syntax
+2. Use input-output redirection (>, >>, |, 2>, etc.)
+3. Use grep and regular expressions to analyze text
+4. Access remote systems using SSH
+5. Log in and switch users in multiuser targets
+6. Archive, compress, unpack, and uncompress files using tar, gzip, and bzip2
+7. Create and edit text files
+8. Create, delete, copy, and move files and directories
+9. Create hard and soft links
+10. List, set, and change standard ugo/rwx permissions
+11. Locate, read, and use system documentation including man, info, and files in /usr/share/doc
 
-## Access a shell prompt and issue commands with correct syntax
-## Use input-output redirection (>, >>, |, 2>, etc.)
-## Use grep and regular expressions to analyze text
-## Access remote systems using SSH
-## Log in and switch users in multiuser targets
-## Archive, compress, unpack, and uncompress files using tar, gzip, and bzip2
-## Create and edit text files
-Create, delete, copy, and move files and directories
-Create hard and soft links
-List, set, and change standard ugo/rwx permissions
-Locate, read, and use system documentation including man, info, and files in /usr/share/doc
-Manage software
+## Manage software
 
-Configure access to RPM repositories
-Install and remove RPM software packages
-Configure access to Flatpak repositories
+1. Configure access to RPM repositories
+2. Install and remove RPM software packages
+3. Configure access to Flatpak repositories
 Install and remove Flatpak software packages
 Create simple shell scripts
 
