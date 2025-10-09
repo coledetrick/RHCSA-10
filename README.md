@@ -29,9 +29,10 @@
   - [4.5. Adjust process scheduling](#45-adjust-process-scheduling)
   - [4.6. Manage tuning profiles](#46-manage-tuning-profiles)
   - [4.7. Locate and interpret system log files and journals](#47-locate-and-interpret-system-log-files-and-journals)
-  - [4.8. Preserve system journals](#48-preserve-system-journals)
-  - [4.9. Start, stop, and check the status of network services](#49-start-stop-and-check-the-status-of-network-services)
-  - [4.10. Securely transfer files between systems](#410-securely-transfer-files-between-systems)
+  - [4.8. Rsyslog](#48-rsyslog)
+  - [4.9. Preserve system journals](#49-preserve-system-journals)
+  - [4.10. Start, stop, and check the status of network services](#410-start-stop-and-check-the-status-of-network-services)
+  - [4.11. Securely transfer files between systems](#411-securely-transfer-files-between-systems)
 - [5. Configure local storage](#5-configure-local-storage)
   - [5.1. List, create, delete partitions on MBR and GPT disks](#51-list-create-delete-partitions-on-mbr-and-gpt-disks)
   - [5.2. Create and remove physical volumes](#52-create-and-remove-physical-volumes)
@@ -67,11 +68,12 @@
   - [10.1. Configure firewall settings using firewall-cmd/firewalld](#101-configure-firewall-settings-using-firewall-cmdfirewalld)
   - [10.2. Manage default file permissions](#102-manage-default-file-permissions)
   - [10.3. Configure key-based authentication for SSH](#103-configure-key-based-authentication-for-ssh)
-  - [10.4. Set enforcing and permissive modes for SELinux](#104-set-enforcing-and-permissive-modes-for-selinux)
-  - [10.5. List and identify SELinux file and process context](#105-list-and-identify-selinux-file-and-process-context)
-  - [10.6. Restore default file contexts](#106-restore-default-file-contexts)
-  - [10.7. Manage SELinux port labels](#107-manage-selinux-port-labels)
-  - [10.8. Use boolean settings to modify system SELinux settings](#108-use-boolean-settings-to-modify-system-selinux-settings)
+  - [10.4. Troubleshoot Selinx](#104-troubleshoot-selinx)
+  - [10.5. Set enforcing and permissive modes for SELinux](#105-set-enforcing-and-permissive-modes-for-selinux)
+  - [10.6. List and identify SELinux file and process context](#106-list-and-identify-selinux-file-and-process-context)
+  - [10.7. Restore default file contexts](#107-restore-default-file-contexts)
+  - [10.8. Manage SELinux port labels](#108-manage-selinux-port-labels)
+  - [10.9. Use boolean settings to modify system SELinux settings](#109-use-boolean-settings-to-modify-system-selinux-settings)
 
 RHCSA EX200 RHEL10
 
@@ -79,16 +81,16 @@ RHCSA EX200 RHEL10
 
 ### 1.1. Registering a System
 
-```bash
-rhc connect
-subscription-manager register|status|syspurpose|unregister
-insights-client --register
+   ```bash
+   rhc connect
+   subscription-manager register|status|syspurpose|unregister
+   insights-client --register
 
-# certificates 
-ls /etc/pki/product-default # identify RH product installed on system
-ls /etc/pki/consumer # identify system
-ls /etc/pki/entitlement # authenticate system to repositories
-```
+   # certificates 
+   ls /etc/pki/product-default # identify RH product installed on system
+   ls /etc/pki/consumer # identify system
+   ls /etc/pki/entitlement # authenticate system to repositories
+   ```
 
 ### 1.2. Access a shell prompt and issue commands with correct syntax  
 
@@ -108,6 +110,9 @@ ls /etc/pki/entitlement # authenticate system to repositories
    ```bash
    grep "fail" /var/log/messages | tee failed.log  ### |: pipe output; tee: write to file and stdout
    ls /nonexistent 2>&1 | tee errors.txt  ### 2>&1: redirect stderr to stdout
+   ls /nonexistent &> errors.txt  ### redirect stderr and stdout to errors.txt
+   ls /nonexistent > errors.txt 2>&1  ### redirect stderr and stdout to errors.txt
+   ls /nonexistent > errors.txt 2> /dev/null  ### redirect discard errors and stdout to errors.txt
    cat file1.txt file2.txt > combined.txt  ### >: overwrite output file
    ```
 
@@ -292,6 +297,13 @@ cat /etc/flatpak/remotes.d/remote_name.flatpakrepo  # View configuration file fo
 
 ## 3. Create simple shell scripts
 
+   ```bash
+   help for
+   help if
+   help test # information about test statements []
+   help while
+   ```
+
 ### 3.1. Conditionally execute code (use of: if, test, [], etc.)  
 
    ```bash
@@ -342,11 +354,11 @@ cat /etc/flatpak/remotes.d/remote_name.flatpakrepo  # View configuration file fo
 ### 4.2. Boot systems into different targets manually  
 
    ```bash
-   systemctl list-units --type=target  ### list systemd targets
+   systemctl list-units --type=target --all  ### list systemd targets
    systemctl isolate rescue.target  ### switch to rescue mode
    ```
 
-To change the GRUB boot target, add `systemd.unit=emergency.target` to the GRUB command line.
+To change the GRUB boot target, add `systemd.unit=emergency.target` or `systemd.unit=rescue.target` to the GRUB command line.
 
 ### 4.3. Interrupt the boot process in order to gain access to a system  
 
@@ -355,6 +367,8 @@ To change the GRUB boot target, add `systemd.unit=emergency.target` to the GRUB 
    ```bash
    mount -o remount,rw /  ### remount as read-write
    passwd root  ### reset root password
+   touch /.autorelabel # if selinux is on the /etc/passwd have to be relabelled on boot.
+   exec /sbin/init
    ```
 
 ### 4.4. Identify CPU/memory intensive processes and kill processes  
@@ -385,24 +399,47 @@ To change the GRUB boot target, add `systemd.unit=emergency.target` to the GRUB 
 
    ```bash
    journalctl --since "1 hour ago"  ### logs from last hour
+   journalctl --since today # show today logs
    journalctl -u sshd --no-pager  ### logs for sshd; --no-pager: no paging
+   journalctl -n 5 # list all 5 logs
+   journalctl -f # follow journalctl
+   journalctl -p err # show only error facility
+   journalctl -u sshd.service # show logs of specific unit
+   journalctl -b 1 # get journal logs  form first boot
+   journalctl --list-boots # show available boot entries in journal.
+   tail -f /var/log/secure # monitor /var/log/secure
+   sealert -a /var/log/audit/audit.log # search for selinux alerts in audit.log
    ```
 
-### 4.8. Preserve system journals  
+### 4.8. Rsyslog
 
    ```bash
-   journalctl --vacuum-size=500M  ### reduce journal size
-   journalctl --output=export > /root/journal-backup.bin  ### export journal
+   man logger # check list of domain and warning priority 
+   man rsyslog.conf # check how to configure rsyslog
+   cat /etc/rsyslog.conf # check rsyslog config
+   echo "authpriv.warning /var/log/secure" >> /etc/rsyslog.d/custom.conf # custom rsyslog conf to log all logs from authpriv domain and warning priority
+   logger -p authpriv.waring "test"  # test rsyslog using logger.
    ```
 
-### 4.9. Start, stop, and check the status of network services  
+### 4.9. Preserve system journals  
+
+   ```bash
+   mkdir /var/log/journal
+   journalctl --flush # after creation of /var/log/journal use this command to flush current journal to storage
+   journalctl --vacuum-size=500M  ### reduce journal size
+   journalctl --output=export > /root/journal-backup.bin  ### export journal
+   man journald.conf # how to modify journal behavior
+   systemctl restart systemd-journald
+   ```
+
+### 4.10. Start, stop, and check the status of network services  
 
    ```bash
    systemctl restart NetworkManager  ### restart service
    systemctl is-enabled firewalld  ### check if enabled
    ```
 
-### 4.10. Securely transfer files between systems  
+### 4.11. Securely transfer files between systems  
 
    ```bash
    rsync -avz --progress /etc user@host:/backup/etc  ### rsync: sync files; -a: archive; -v: verbose; -z: compress
@@ -415,8 +452,12 @@ To change the GRUB boot target, add `systemd.unit=emergency.target` to the GRUB 
 
    ```bash
    parted /dev/sdb print  ### print partition table
-   parted /dev/sdb mkpart primary ext4 1MiB 100MiB  ### create partition
-   fdisk -l /dev/sdb  ### list partitions
+   parted /dev/sdb mklabel msdos|gpt ### create partition table msdos or gpt type.
+   parted /dev/sdb mkpart primary backup ext4 1MiB 100MiB  ### create primary partition on msdos labeled disk, named backup with partition type ext4. Name, partition type are optional options, primary option is necessary only for msdos labeled disk, don't use when disk is gpt labelled.
+   parted /dev/sdb mkpart swap1 linux-swap 1MiB 100MiB ### create swap partition named swap1
+   parted /dev/sdb rm 1 ### remove partition 1 on /dev/sdb
+   parted /dev/sdb set 1 lvm on # set lmv flag on partition.
+   udevadm settle # register new partitions with kernel.
    ```
 
 ### 5.2. Create and remove physical volumes  
@@ -424,6 +465,8 @@ To change the GRUB boot target, add `systemd.unit=emergency.target` to the GRUB 
    ```bash
    pvcreate /dev/sdb1 /dev/sdc1  ### create PVs
    pvs  ### list PVs
+   pvmove -A y /dev/sdc1 # free /dev/sdb1 parttition
+   vgreduce vg01 /dev/sdc1 # remove physical volume from volume group
    pvremove /dev/sdc1  ### remove PV
    ```
 
@@ -449,6 +492,7 @@ To change the GRUB boot target, add `systemd.unit=emergency.target` to the GRUB 
    lsblk -fp
    blkid /dev/sdb1  ### get UUID
    echo "UUID=$(blkid -s UUID -o value /dev/sdb1) /mnt/data ext4 defaults 0 2" >> /etc/fstab  ### add to fstab
+
    ```
 
 ### 5.6. Add new partitions and logical volumes, and swap to a system non-destructively  
@@ -457,6 +501,10 @@ To change the GRUB boot target, add `systemd.unit=emergency.target` to the GRUB 
    lvextend -r -L +2G /dev/vgdata/lvdata  ### -r: resize filesystem
    mkswap /dev/vgdata/lvswap  ### create swap
    swapon /dev/vgdata/lvswap  ### enable swap
+   echo 'UUID=xxxxxx swap swap defaults 0 0' >> /etc/fstab
+   echo 'UUID=xxxxxx swap swap pri=4 0 0' >> /etc/fstab # setup swap priority, default -2, max 32767, higher number higher priority.
+   swapon -a # mount all swap disks in fstab.
+   swapoff # turnoff swap
    ```
 
 ## 6. Create and configure file systems
@@ -467,28 +515,44 @@ To change the GRUB boot target, add `systemd.unit=emergency.target` to the GRUB 
    mkfs.xfs /dev/vgdata/lvdata  ### create xfs filesystem
    mount -o noatime /dev/vgdata/lvdata /mnt/data  ### mount with noatime
    umount /mnt/data  ### unmount
+   echo '/dev/vgdata/lvdata /mnt/data xfs default 0 0' >> /etc/fstab ### add fstab entry to mount volume.
    ```
 
 ### 6.2. Mount and unmount network file systems using NFS  
 
    ```bash
-   mount -t nfs4 server:/export/home /mnt/home  ### mount NFSv4
-   echo "server:/export/home /mnt/home nfs4 defaults 0 0" >> /etc/fstab  ### add NFS to fstab
+   showmount --exports server # show mount points on remove server or moutn root directory / to list all mounts.
+   mount -t nfs -i rwmstbc server:/export/home /mnt/home  ### mount NFSv4
+   echo "server:/export/home /mnt/home nfs4 rw,sync 0 0" >> /etc/fstab  ### add NFS to fstab
    ```
 
 ### 6.3. Configure autofs  
 
    ```bash
-   echo "/home /etc/auto.home" >> /etc/auto.master  ### add autofs map
-   echo "user -rw,soft server:/export/user" > /etc/auto.home  ### map user dir
+   ### direct autofs
+   echo "/- /etc/auto.home" >> /etc/auto.master.d/home.autofs  ### add autofs map
+   echo "/home/user -rw,sync server:/export/user" > /etc/auto.home  ### map user dir
+   ### indirect autofs
+   echo "/home /etc/auto.home" >> /etc/auto.master.d/home.autofs  ### add autofs map
+   echo "user -rw,sync server:/export/user" > /etc/auto.home  ### map user dir
+   echo "* -rw,sync server:/export/&" > /etc/auto.home  ### map all dirs in /export/ dir
+   echo "* -rw,sync server:/export/homes/&" > /etc/auto.home  ### map all dirs in /export/ dir
+
    systemctl restart autofs  ### restart autofs
    ```
+
+When mounting home dircetory from network share set selinux boolean `setsebool -P use_nfs_home_dirs on`.
 
 ### 6.4. Extend existing logical volumes  
 
    ```bash
    lvextend -L +5G /dev/vgdata/lvdata  ### extend LV
    xfs_growfs /mnt/data  ### grow xfs filesystem
+   resize2fs /dev/vg01/lv01 ## grow ext4 filesystem
+   swapoff -v /dev/vg01/swap ## unmount swap
+   lvextedn -L +1G /dev/vg01/swap ## extend swap partition
+   mkswap /dev/vg01/swap ## repartition swap
+   swapon /dev/vg01/swap ## mount swap
    ```
 
 ### 6.5. Diagnose and correct file permission problems  
@@ -501,6 +565,15 @@ To change the GRUB boot target, add `systemd.unit=emergency.target` to the GRUB 
 ## 7. Deploy, configure, and maintain systems  
 
 ### 7.1. Schedule tasks using at and cron
+
+   ```bash
+   at 23:30 # interactive job, enter script then ctrl+D
+   crontab -e # edit cron of user running command
+   crontab -l -u bob # show crontab of user bob
+   crontab -e -u bob # as root edit bob crontab
+   ls /etc/cron.d/ # custom cron jobs directory
+   cat /etc/crontab > /etc/cron.d/custom # cat content of default crontab, then edit for your needs.
+   ```
 
 ### 7.2. Start and stop services and configure services to start automatically at boot  
 
@@ -528,8 +601,12 @@ To change the GRUB boot target, add `systemd.unit=emergency.target` to the GRUB 
 ### 7.4. Configure time service clients  
 
    ```bash
+   tzselect # help select specific timezone.
+   timedatectl list-timezones # list all available time zones
    timedatectl set-timezone America/New_York  ### set timezone
+   timedatectl set-ntp true|false # on|off ntp, reqirements: chrony instaled.
    chronyc tracking  ### show chrony status
+   chronyc sources -v # show chrony sync status
    ```
 
 ### 7.5. Install and update software packages from Red Hat Content Delivery Network, a remote repository, or from the local file system  
@@ -542,8 +619,11 @@ To change the GRUB boot target, add `systemd.unit=emergency.target` to the GRUB 
 ### 7.6. Modify the system bootloader  
 
    ```bash
-   grub2-editenv list  ### list GRUB env
-   grub2-set-default 2  ### set default boot entry
+   grubby --info ALL # list all avaible grub options
+   grubby --default-index # get default grub index
+   grubby --set-default-index 0 # set grub to use kernel form index
+   grubby --update-kernel /boot/vmlinuz-6.12.0-55.9.1.el10_0.x86_64 --args="rhgb quiet" ## add  argument to kernel 
+   grubby --update-kernel /boot/vmlinuz-6.12.0-55.9.1.el10_0.x86_64 --remove-args="rhgb quiet" ## remove argument from kernel 
    ```
 
 ## 8. Manage basic networking
@@ -585,9 +665,14 @@ Always check autoconnect of connection profiles, new and old to preserver config
 ### 8.4. Restrict network access using firewalld and firewall-cmd  
 
    ```bash
+   firewall-cmd --get-default-zone
+   firewall-cmd --set-default-zone=dmz
+   firewall-cmd --permanent --zone=internal --add-source=192.168.0.0./24 # allow trafic from network in zone 
+   firewall-cmd --permament --zone=pubic --add-source=192.168.12.11/32 # allow trafic from single address.
+   firewall-cmd --permament --zone=block --add-source=192.168.12.11/32 # block trafic from single address.
    firewall-cmd --permanent --zone=public --add-service=https  ### add https service
    firewall-cmd --permanent --zone=public --remove-service=ftp  ### remove ftp service
-   firewall-cmd --reload  ### reload firewall
+   firewall-cmd --reload  ### reload firewall, neccessary when using --permanent option.
    ```
 
 ## 9. Manage users and groups
@@ -699,36 +784,54 @@ chmod -R o-rwx /home/alice  ### remove other access
    ssh-copy-id -i ~/.ssh/id_ed25519.pub user@host  ### copy key to host
    ```
 
-### 10.4. Set enforcing and permissive modes for SELinux  
+### 10.4. Troubleshoot Selinx
 
    ```bash
-   setenforce 0  ### set permissive mode
+   tail /var/log/messages | grep -C 3 -i selinux
+   tail /var/log/audit/audit.log | grep -C 3 -i selinux
+   sealert -f /var/log/audit/audit.log
+   ausearch -m AVC -ts recent
+   ```
+
+### 10.5. Set enforcing and permissive modes for SELinux  
+
+   ```bash
+   setenforce 0  ### set permissive mode --temporary
+   getenforce
    sed -i 's/^SELINUX=.*/SELINUX=permissive/' /etc/selinux/config  ### change config
    ```
 
-### 10.5. List and identify SELinux file and process context  
+### 10.6. List and identify SELinux file and process context  
 
    ```bash
    ls -lZ /var/www/html  ### show SELinux context
    ps -eZ | grep httpd  ### show process context
+   semanage fcontext -l # list all file labels
+   semanage fcontext -a -t httpd_sys_content_t '/virtual(/.*)?'
+   restorecon -RFvv /virtual # restore contest recursiviely on directory
+   semanage fcontext -l -C # list changes to default policy
    ```
 
-### 10.6. Restore default file contexts  
+### 10.7. Restore default file contexts  
 
    ```bash
    restorecon -Rv /var/www/html  ### restore context; -R: recursive; -v: verbose
    ```
 
-### 10.7. Manage SELinux port labels  
+### 10.8. Manage SELinux port labels  
 
    ```bash
+   semanage port -l # list all port labels
    semanage port -a -t ssh_port_t -p tcp 2222  ### -a: append (add); -t: type; -p: protocol
    semanage port -d -t http_port_t -p tcp 8080  ### -d: delete; -t: type; -p: protocol
+   semanage port -m -t http_port_t -p tcp 71 # we have to use this command if port 71 is assigned to other policy.
+   semanage port -l -C # list changes to default policy
    ```
 
-### 10.8. Use boolean settings to modify system SELinux settings  
+### 10.9. Use boolean settings to modify system SELinux settings  
 
    ```bash
+   getsebool -a # list all avaible boolean policies
    setsebool -P httpd_can_sendmail on  ### -P: persistent; set boolean
    getsebool httpd_can_sendmail  ### get boolean value
    ```
