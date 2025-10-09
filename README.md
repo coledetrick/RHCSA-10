@@ -143,6 +143,9 @@ RHCSA EX200 RHEL10
 ### 1.6. Log in and switch users in multiuser targets  
 
    ```bash
+   sudo -i # switch to root
+   sudo su - username # switch to user
+   sudo su - username -c "whoami" # run command as other user
    su -l username -c "whoami"  ### su: switch user; -l: login shell; -c: run command
    sudo -u username bash -c 'id'  ### sudo: run as another user; -u: specify user
    ```
@@ -151,6 +154,8 @@ RHCSA EX200 RHEL10
 
    ```bash
    tar --exclude='*.tmp' -czvf backup.tar.gz /home/user  ### --exclude: skip files; -c: create; -z: gzip; -v: verbose; -f: file
+   tar -cvf test.tar.gz /home/user # compress directory 
+   tar -xvf test.tar.gz . # uncompress file
    tar -tvf archive.tar | grep '.sh'  ### -t: list; -v: verbose; -f: file
    ```
 
