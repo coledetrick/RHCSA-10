@@ -573,6 +573,7 @@ When mounting home dircetory from network share set selinux boolean `setsebool -
 
    ```bash
    at 23:30 # interactive job, enter script then ctrl+D
+   echo "test interactive job" | at 23:30
    crontab -e # edit cron of user running command
    crontab -l -u bob # show crontab of user bob
    crontab -e -u bob # as root edit bob crontab
