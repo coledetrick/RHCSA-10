@@ -667,7 +667,7 @@ Always check autoconnect of connection profiles, new and old to preserver config
 
    ```bash
    echo "192.168.2.100 server2" >> /etc/hosts  ### add host entry
-   hostnamectl set-hostname server2.example.com  ### set hostname
+   hostnamectl hostname server2.example.com  ### set hostname
    dig example.com # query DNS servers.
    host example.com # query DNS servers
    getent hosts example.com # query also /etc/hosts
