@@ -636,6 +636,7 @@ When mounting home dircetory from network share set selinux boolean `setsebool -
 ### 7.6. Modify the system bootloader  
 
    ```bash
+   man bootparam # list of kernel arguments
    grubby --info ALL # list all avaible grub options
    grubby --default-index # get default grub index
    grubby --set-default-index 0 # set grub to use kernel form index
