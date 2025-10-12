@@ -527,7 +527,7 @@ To change the GRUB boot target, add `systemd.unit=emergency.target` or `systemd.
 
    ```bash
    showmount --exports server # show mount points on remove server or moutn root directory / to list all mounts.
-   mount -t nfs -i rwmstbc server:/export/home /mnt/home  ### mount NFSv4
+   mount -t nfs server:/export/home /mnt/home  ### mount NFSv4
    echo "server:/export/home /mnt/home nfs4 rw,sync 0 0" >> /etc/fstab  ### add NFS to fstab
    ```
 
