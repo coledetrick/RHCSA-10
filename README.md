@@ -579,6 +579,7 @@ When mounting home dircetory from network share set selinux boolean `setsebool -
    crontab -e -u bob # as root edit bob crontab
    ls /etc/cron.d/ # custom cron jobs directory
    cat /etc/crontab > /etc/cron.d/custom # cat content of default crontab, then edit for your needs.
+   echo "* * * * * echo "test cron job" | crontab - -u username # overvrite crontab of user with pipline. 
    ```
 
 ### 7.2. Start and stop services and configure services to start automatically at boot  
