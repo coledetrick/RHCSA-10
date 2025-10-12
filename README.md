@@ -852,4 +852,5 @@ chmod -R o-rwx /home/alice  ### remove other access
    getsebool -a # list all avaible boolean policies
    setsebool -P httpd_can_sendmail on  ### -P: persistent; set boolean
    getsebool httpd_can_sendmail  ### get boolean value
+   semanage boolean -l ## list available booleans with description.
    ```
