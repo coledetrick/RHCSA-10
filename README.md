@@ -572,6 +572,16 @@ When mounting home dircetory from network share set selinux boolean `setsebool -
 ### 7.1. Schedule tasks using at and cron
 
    ```bash
+   # Example of job definition:
+   # .---------------- minute (0 - 59)
+   # |  .------------- hour (0 - 23)
+   # |  |  .---------- day of month (1 - 31)
+   # |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...
+   # |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat
+   # |  |  |  |  |
+   # *  *  *  *  * user-name  command to be executed
+   # 0/2 * * * * bob echo "evry two minut job"
+   # 0/5 15-18 * * * 
    at 23:30 # interactive job, enter script then ctrl+D
    echo "test interactive job" | at 23:30
    crontab -e # edit cron of user running command
@@ -579,7 +589,7 @@ When mounting home dircetory from network share set selinux boolean `setsebool -
    crontab -e -u bob # as root edit bob crontab
    ls /etc/cron.d/ # custom cron jobs directory
    cat /etc/crontab > /etc/cron.d/custom # cat content of default crontab, then edit for your needs.
-   echo "* * * * * echo "test cron job" | crontab - -u username # overvrite crontab of user with pipline. 
+   echo "* * * * * command" | crontab - -u bob # overvrite crontab of user bob with pipline.
    ```
 
 ### 7.2. Start and stop services and configure services to start automatically at boot  
