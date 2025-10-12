@@ -807,7 +807,7 @@ chmod -R o-rwx /home/alice  ### remove other access
    ```bash
    tail /var/log/messages | grep -C 3 -i selinux
    tail /var/log/audit/audit.log | grep -C 3 -i selinux
-   sealert -f /var/log/audit/audit.log
+   sealert -a /var/log/audit/audit.log
    ausearch -m AVC -ts recent
    ```
 
