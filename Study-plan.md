@@ -1,17 +1,25 @@
+I took v10.
+
+For study materials, primarily I used Sander's materials on O'Reilly. Outside of Sanders, I used old v9 materials.
+
+- Sander's course: https://learning.oreilly.com/course/red-hat-rhcsa/9780135493137/
+- Asghar's Book: https://learning.oreilly.com/library/view/rhcsa-red-hat/9781835887325/
+- KodeKloud: RHCSA course (this course I went through to get familiar with Linux - months before even thinking of taking this exam) - I recommend using Sander's course over these guys for the actual exam.
+- Git repo: https://github.com/ive663/RHCSA
+I was a pretty casual Linux user for awhile, but got fairly comfortable with bash scripting and odd things via kodekloud & their labs.
+- In terms of study prep for the exam, I took about 2 months and some change to study until I felt comfortable. (I booked while still feeling uncertain! But just had to give it a try)
+- I have a small home lab with proxmox I used to spin up some RHEL vm's and follow long Sander's course. I would say once you can finish Sander's practice exam with just man pages, book it and polish on parts you feel 'slow' on. Know how to find the information you need with man pages! Get a little familiar with vim (deleting, copying, pasting, jumping around etc..).
+- Their environment is a little janky, for example I couldn't use multiple tmux windows within their environment. But honestly I didn't end up needing it and crushed the tasks within an hour, taking another hour to double check things.
+
 WEEK 1 — Core Linux & System Basics
 
 Goal: Absolute comfort with the shell, files, permissions, help system
 
 Day 1 – Environment & Exam Familiarity
-
 Install RHEL 10 (2 VMs if possible)
-
 Snapshot baseline system
-
 Review RHCSA exam objectives
-
 Learn to use:
-
 man
 info
 /usr/share/doc
